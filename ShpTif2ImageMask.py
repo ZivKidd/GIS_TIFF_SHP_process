@@ -1,17 +1,22 @@
+# -*- coding: utf-8 -*-
+# encoding: utf-8
+
 # 输入：所有的tif路径和shp文件的路径
 # 输出：png格式的image和mask
 
-# -*- coding: utf-8 -*-
+
+import sys
+
+reload(sys)
+
+sys.setdefaultencoding('utf8')
 import gdal
-import osgeo
 import os
-import shutil
 import shapefile
 from osgeo import osr
 import numpy as np
 # import arcpy
 from PIL import Image, ImageDraw
-import sys
 import glob
 
 Image.MAX_IMAGE_PIXELS = None
@@ -115,20 +120,20 @@ def isOutOfRaster(x_list, y_list, raster_x_min, raster_x_max, raster_y_min, rast
 
 # 需要改的参数
 #########################################################################################################
-date_string = 'nishiliu-1030'  # 文件的独特命名
-shp_path = r"I:\nishiliu1029\nishiliu2\nishiliu.shp"  # shp文件的路径， shapefile不支持中文路径
+date_string = 'nishiliu'  # 文件的独特命名
+shp_path = r"I:\20141215dagangshan\shapefiles\nishiliu.shp"  # shp文件的路径， shapefile不支持中文路径
 
-cell = 150
+cell = 2000
 
 # tif的位置，两种方式
-tif_folder = r"I:\nishiliu1029\nishiliu2\*.tif"  # 存放tif的总文件夹
+tif_folder = r"I:\20141215dagangshan\all\3_dsm_ortho\2_mosaic\tiles\*.tif"  # 存放tif的总文件夹
 tif_files = glob.glob(tif_folder)
 # tif_files.extend(getFileName(r"H:\xzr\wanli\DOM\拼接\truecolor"))
 
-# tif_files=[r"I:\ludian_slope\good\slope_good_huapo.tif"]
+# tif_files=[r"I:\20141215dagangshan\all\3_dsm_ortho\2_mosaic\all_transparent_mosaic_group1.tif"]
 
 # 生成文件总文件夹
-all_dir = r"I:\nishiliu1029\result2\\"
+all_dir = r"I:\20141215dagangshan\result\nishiliu\\"
 
 # 颜色
 # 滑坡
@@ -139,7 +144,7 @@ all_dir = r"I:\nishiliu1029\result2\\"
 color=(0, 0, 255)
 
 # 如果影像和shp都是投影坐标系
-use_proj_coord = False
+use_proj_coord = True
 #########################################################################################################
 
 print_shp=False
@@ -155,7 +160,7 @@ if not os.path.exists(mask_folder):
     os.mkdir(mask_folder)
 
 num = 0
-print('共有影像：',len(tif_files))
+print '共有影像：', len(tif_files)
 for tif_file in tif_files:
     # if('2019' not in tif_file):
     #     continue
@@ -177,14 +182,14 @@ for tif_file in tif_files:
     sf = shapefile.Reader(shp_path)  # 读取shp文件
     shapes = sf.shapes()
 
-    # raster = np.zeros((im_height,im_width), dtype=np.int)
+    # raster = np.zeros((im_height,im_width), dtype=np.ubyte)
     mask_all = Image.new('RGB', (im_width, im_height))
 
     drawed_mask = 0
     for i in range(len(shapes)):
         if(not print_shp):
             print_shp=True
-            print('共有shp：',len(shapes))
+            print '共有shp：' + str(len(shapes))
         # print (str(i) + '/' + str(len(shapes)))
         shp = shapes[i]  # 获取shp文件中的每一个形状
         point = shp.points  # 获取每一个最小外接矩形的四个点
@@ -208,7 +213,7 @@ for tif_file in tif_files:
         draw = ImageDraw.Draw(mask_all)
         # 滑坡
         draw.polygon(vertice, fill=color)
-    print('影像共包含灾害数：', drawed_mask)
+    print '影像共包含灾害数：' + str(drawed_mask)
 
     # mask_all.save(r"H:\xzr\duxiang_buffer\huapo_self\huapo_shp\2kmclip.png")
     #
@@ -242,21 +247,24 @@ for tif_file in tif_files:
             coords = geo2imagexy(dataset, x_cen, y_cen)
             coords = (int(round(abs(coords[0]))), int(round(abs(coords[1]))))
 
-
         offset_x = coords[0] - cell / 2
         offset_y = coords[1] - cell / 2
 
         if (offset_x < 0 or offset_y < 0 or offset_x + cell > im_width or offset_y + cell > im_height):
             continue
+        # if(offset_x<0):
+        #     offset_x=im
+        # if(offset_y<0):
+        #     offset_y=0
 
         out_band1 = in_band1.ReadAsArray(offset_x, offset_y, cell, cell)
         out_band2 = in_band2.ReadAsArray(offset_x, offset_y, cell, cell)
         out_band3 = in_band3.ReadAsArray(offset_x, offset_y, cell, cell)
 
-        if (np.where(out_band1 == 0)[0].shape[0] > 1024 ** 2 / 2):
-            continue
+        # if (np.where(out_band1 == 0)[0].shape[0] > 1024 ** 2 / 2):
+        #     continue
 
-        print('灾害:', str(i) + '/' + str(len(shapes)))
+        print '灾害:' + str(i) + '/' + str(len(shapes))
 
         num += 1
 
@@ -304,7 +312,7 @@ for tif_file in tif_files:
 
         # 将缓存写入磁盘
         out_ds.FlushCache()
-        print("FlushCache succeed")
+        print "FlushCache succeed"
 
         # 计算统计值
         # for i in range(1, 3):
@@ -317,5 +325,5 @@ for tif_file in tif_files:
         img.save(image_folder + '\\' + date_string + '-' + str(num) + '.png')
 
         # print("End!")
-print('image保存至：', image_folder)
-print('mask保存至：', mask_folder)
+print 'image保存至：' + image_folder
+print 'mask保存至：' + mask_folder
