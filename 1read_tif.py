@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import gdal
-import osgeo
 import os
-import shutil
-import shapefile
-from osgeo import osr
-import numpy as np
+
 import arcpy
-from PIL import Image, ImageDraw
+import gdal
+import numpy as np
+import shapefile
+from PIL import Image
+from osgeo import osr
 
 arcpy.env.workspace = r"D:\xzr\process\data.gbd"  # arcgis地理数据库目录
 
@@ -61,6 +60,20 @@ def lonlat2imagexy(dataset, x, y):
     coords = lonlat2geo(dataset, x, y)
     coords2 = geo2imagexy(dataset, coords[0], coords[1])
     return (int(round(abs(coords2[0]))), int(round(abs(coords2[1]))))
+
+
+def imagexy2geo(dataset, row, col):
+    '''
+    根据GDAL的六参数模型将影像图上坐标（行列号）转为投影坐标或地理坐标（根据具体数据的坐标系统转换）
+    :param dataset: GDAL地理数据
+    :param row: 像素的行号
+    :param col: 像素的列号
+    :return: 行列号(row, col)对应的投影坐标或地理坐标(x, y)
+    '''
+    trans = dataset.GetGeoTransform()
+    px = trans[0] + row * trans[1] + col * trans[2]
+    py = trans[3] + row * trans[4] + col * trans[5]
+    return px, py
 
 
 def getAllFileName(folder_path):

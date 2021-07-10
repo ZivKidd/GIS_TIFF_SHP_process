@@ -67,9 +67,9 @@ def lonlat2imagexy(dataset, x, y):
     return (int(round(abs(coords2[0]))), int(round(abs(coords2[1]))))
 
 
-sf = shapefile.Reader(r"J:\shanxibianpo\all.shp")  # 读取shp文件
+sf = shapefile.Reader(r"J:\shanxibianpo\undect_bianpo.shp")  # 读取未识别目标物的shp文件
 dataset = gdal.Open(r"J:\山西整幅\影像\山西全省20200508.img")
-dataset_mask = gdal.Open(r"J:\shanxibianpo\bianpo.tif")
+# dataset_mask = gdal.Open(r"J:\shanxibianpo\bianpo.tif")
 im_width = dataset.RasterXSize  # 栅格矩阵的列数
 im_height = dataset.RasterYSize  # 栅格矩阵的行数
 # im_geotrans = dataset.GetGeoTransform()  # 仿射矩阵
@@ -78,10 +78,10 @@ im_height = dataset.RasterYSize  # 栅格矩阵的行数
 in_band1 = dataset.GetRasterBand(1)
 in_band2 = dataset.GetRasterBand(2)
 in_band3 = dataset.GetRasterBand(3)
-mask_band = dataset_mask.GetRasterBand(1)
+# mask_band = dataset_mask.GetRasterBand(1)
 
-output_folder = r"J:\shanxibianpo\image"
-output_folder_mask = r"J:\shanxibianpo\mask"
+output_folder = r"J:\shanxibianpo\undect_img"
+# output_folder_mask = r"J:\shanxibianpo\mask"
 cell = 1024
 
 shapes = sf.shapes()
@@ -127,9 +127,9 @@ for i in tqdm.tqdm(range(len(shapes))):
     out_band1 = in_band1.ReadAsArray(offset_x, offset_y, cell, cell)
     out_band2 = in_band2.ReadAsArray(offset_x, offset_y, cell, cell)
     out_band3 = in_band3.ReadAsArray(offset_x, offset_y, cell, cell)
-    out_bandmask = mask_band.ReadAsArray(offset_x, offset_y, cell, cell)
+    # out_bandmask = mask_band.ReadAsArray(offset_x, offset_y, cell, cell)
 
-    out_bandmask[np.where(out_bandmask > 0)] = 255
+    # out_bandmask[np.where(out_bandmask > 0)] = 255
 
     out_band1 = np.reshape(out_band1, [out_band1.shape[0], out_band1.shape[1], 1])
     out_band2 = np.reshape(out_band2, [out_band2.shape[0], out_band2.shape[1], 1])
@@ -138,7 +138,7 @@ for i in tqdm.tqdm(range(len(shapes))):
 
     # if(np.where(out_band1==0)[0].shape[0]+np.where(out_band1==255)[0].shape[0]!=cell**2):
     cv2.imwrite(os.path.join(output_folder, 'shanxi_{0}_{1}.png'.format(offset_x, offset_y)), image)
-    cv2.imwrite(os.path.join(output_folder_mask, 'shanxi_{0}_{1}.png'.format(offset_x, offset_y)), out_bandmask)
+    # cv2.imwrite(os.path.join(output_folder_mask, 'shanxi_{0}_{1}.png'.format(offset_x, offset_y)), out_bandmask)
     #
     #     j+=cell
     # i+=cell

@@ -67,14 +67,14 @@ def lonlat2imagexy(dataset, x, y):
 
 
 ortho_tifs = [r"J:\山西整幅\影像\山西全省20200508.img"]
-shp_tifs = [r"J:\shanxibianpo\bianpo.tif"]
-name = ['shanxibianpo1024_']
-output_folder = r"J:\shanxibianpo\image1024"
-output_folder_mask = r"J:\shanxibianpo\mask1024"
+# shp_tifs=[r"J:\shanxibianpo\bianpo.tif"]
+name = ['shanxibianpo1024overlap_']
+output_folder = r"J:\shanxibianpo\image1024overlap"
+# output_folder_mask = r"J:\shanxibianpo\mask1024"
 
 for k in range(1):
     dataset = gdal.Open(ortho_tifs[k])
-    dataset_mask = gdal.Open(shp_tifs[k])
+    # dataset_mask = gdal.Open(shp_tifs[k])
     im_width = dataset.RasterXSize  # 栅格矩阵的列数
     im_height = dataset.RasterYSize  # 栅格矩阵的行数
     # im_geotrans = dataset.GetGeoTransform()  # 仿射矩阵
@@ -83,10 +83,10 @@ for k in range(1):
     in_band1 = dataset.GetRasterBand(1)
     in_band2 = dataset.GetRasterBand(2)
     in_band3 = dataset.GetRasterBand(3)
-    mask_band = dataset_mask.GetRasterBand(1)
+    # mask_band = dataset_mask.GetRasterBand(1)
 
     cell = 1024
-    i = 0
+    i = 192000
     while (i + cell < im_height):
         print
         datetime.datetime.now()
@@ -103,9 +103,9 @@ for k in range(1):
             if (np.where(out_band1 == 0)[0].shape[0] + np.where(out_band1 == 255)[0].shape[0] != cell ** 2):
                 out_band2 = in_band2.ReadAsArray(j, i, cell, cell)
                 out_band3 = in_band3.ReadAsArray(j, i, cell, cell)
-                out_bandmask = mask_band.ReadAsArray(j, i, cell, cell)
+                # out_bandmask = mask_band.ReadAsArray(j, i, cell, cell)
 
-                out_bandmask[np.where(out_bandmask > 0)] = 255
+                # out_bandmask[np.where(out_bandmask > 0)] = 255
 
                 out_band1 = np.reshape(out_band1, [out_band1.shape[0], out_band1.shape[1], 1])
                 out_band2 = np.reshape(out_band2, [out_band2.shape[0], out_band2.shape[1], 1])
@@ -115,7 +115,7 @@ for k in range(1):
                 # if(np.sum(out_bandmask)==0):
                 #     continue
                 cv2.imwrite(os.path.join(output_folder, '{0}_{1}_{2}.png'.format(name[k], i, j)), image)
-                cv2.imwrite(os.path.join(output_folder_mask, '{0}_{1}_{2}.png'.format(name[k], i, j)), out_bandmask)
+                # cv2.imwrite(os.path.join(output_folder_mask, '{0}_{1}_{2}.png'.format(name[k],i, j)), out_bandmask)
 
             j += int(cell * 0.5)
         i += int(cell * 0.5)
